@@ -12,6 +12,7 @@
         <option value="$PROJECT_DIR$/ledger-service/pom.xml" />
         <option value="$PROJECT_DIR$/wallet-service/pom.xml" />
         <option value="$PROJECT_DIR$/transaction-service/pom.xml" />
+        <option value="$PROJECT_DIR$/pom.xml" />
       </list>
     </option>
   </component>

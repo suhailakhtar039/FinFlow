@@ -2,13 +2,10 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <annotationProcessing>
-      <profile name="Annotation profile for finflow" enabled="true">
+      <profile name="Maven default annotation processors profile" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
-        </processorPath>
         <module name="finflow (5)" />
         <module name="finflow (6)" />
         <module name="finflow (3)" />
@@ -22,14 +19,14 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="finflow" options="-parameters" />
-      <module name="finflow (1)" options="-parameters" />
-      <module name="finflow (2)" options="-parameters" />
-      <module name="finflow (3)" options="-parameters" />
-      <module name="finflow (4)" options="-parameters" />
-      <module name="finflow (5)" options="-parameters" />
-      <module name="finflow (6)" options="-parameters" />
-      <module name="finflow (7)" options="-parameters" />
+      <module name="finflow" options="" />
+      <module name="finflow (1)" options="" />
+      <module name="finflow (2)" options="" />
+      <module name="finflow (3)" options="" />
+      <module name="finflow (4)" options="" />
+      <module name="finflow (5)" options="" />
+      <module name="finflow (6)" options="" />
+      <module name="finflow (7)" options="" />
     </option>
   </component>
 </project>
