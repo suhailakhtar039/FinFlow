@@ -12,7 +12,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class LedgerKafkaConsumer {
-    @Autowired
+
     private final LedgerRepo ledgerRepo;
 
     @KafkaListener(topics = "transaction-topic", groupId = "ledger-group")
