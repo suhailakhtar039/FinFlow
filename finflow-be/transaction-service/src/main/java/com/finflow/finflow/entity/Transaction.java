@@ -1,5 +1,7 @@
-package com.finflow.finflow;
+package com.finflow.finflow.entity;
 
+import com.finflow.finflow.entity.enums.TransactionStatus;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -25,6 +27,9 @@ public class Transaction {
 
     @Enumerated(EnumType.STRING)
     private TransactionStatus status;
+
+    @Column(unique = true)
+    private String idempotencyKey;
 
     private LocalDateTime createdAt;
 }
