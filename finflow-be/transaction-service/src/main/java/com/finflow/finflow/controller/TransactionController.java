@@ -1,5 +1,6 @@
-package com.finflow.finflow;
+package com.finflow.finflow.controller;
 
+import com.finflow.finflow.service.TransactionProducer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

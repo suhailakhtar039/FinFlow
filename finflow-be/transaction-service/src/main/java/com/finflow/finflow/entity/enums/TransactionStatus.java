@@ -1,4 +1,4 @@
-package com.finflow.finflow;
+package com.finflow.finflow.entity.enums;
 
 public enum TransactionStatus {
     INITIATED,

@@ -1,4 +1,4 @@
-package com.finflow.finflow;
+package com.finflow.finflow.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
