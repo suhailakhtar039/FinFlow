@@ -18,8 +18,3 @@ spring:
           predicates:
             - Path=/wallet/**
 
-
-logging:
-  level:
-    org.springframework.security: DEBUG
-    org.springframework.cloud.gateway: DEBUG
