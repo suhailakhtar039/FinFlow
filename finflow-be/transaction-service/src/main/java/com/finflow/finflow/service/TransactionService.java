@@ -18,7 +18,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TransactionService {
 
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final KafkaTemplate<String, TransactionCreatedEvent> kafkaTemplate;
     private final TransactionRepo transactionRepo;
 
     @Transactional
@@ -53,7 +53,7 @@ public class TransactionService {
                         .build();
 
         kafkaTemplate.send("transaction-topic", event);
-
+        System.out.println("EVENT PUBLISHED: " + event);
         return transaction;
 
     }
