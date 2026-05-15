@@ -1,9 +1,14 @@
 package com.finflow.finflow;
 
+import com.finflow.dto.TransactionCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.annotation.DltHandler;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.annotation.RetryableTopic;
+import org.springframework.retry.annotation.Backoff;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -15,33 +20,67 @@ public class LedgerKafkaConsumer {
 
     private final LedgerRepo ledgerRepo;
 
-    @KafkaListener(topics = "transaction-topic", groupId = "ledger-group")
-    public void consume(String message) {
-        System.out.println("Ledger processing: " + message);
+    @RetryableTopic(
+            attempts = "2",
+            backoff = @Backoff(
+                    delay = 2000,
+                    multiplier = 2.0
+            ),
+            dltTopicSuffix = ".DLT"
+    )
+    @KafkaListener(
+            topics = "transaction-topic",
+            groupId = "ledger-group"
+    )
+    @Transactional
+    public void consume(TransactionCreatedEvent event) {
 
-        // Example transactionId
-        String transactionId = UUID.randomUUID().toString();
+        System.out.println("Processing transaction: "
+                + event.getTransactionId());
+        System.out.println("EVENT in CONSUMER: " + event);
+        // TEMPORARY FAILURE SIMULATION
+        if(event.getAmount().compareTo(
+                BigDecimal.valueOf(500)) > 0) {
 
-        //DEBIT ENTRY
+            throw new RuntimeException(
+                    "Simulated processing failure");
+        }
+
+        boolean exists =
+                ledgerRepo.existsByTransactionIdAndEntryType(
+                        event.getTransactionId(),
+                        "DEBIT"
+                );
+
+        if(exists) {
+            return;
+        }
+
         LedgerEntry debit = new LedgerEntry();
-        debit.setTransactionId(transactionId);
-        debit.setAccountId("USER_A");
+
+        debit.setTransactionId(event.getTransactionId());
+        debit.setAccountId(event.getSenderId());
         debit.setEntryType("DEBIT");
-        debit.setAmount(BigDecimal.valueOf(100));
+        debit.setAmount(event.getAmount());
         debit.setCreatedAt(LocalDateTime.now());
 
-        // CREDIT ENTRY
         LedgerEntry credit = new LedgerEntry();
-        credit.setTransactionId(transactionId);
-        credit.setAccountId("USER_B");
+
+        credit.setTransactionId(event.getTransactionId());
+        credit.setAccountId(event.getReceiverId());
         credit.setEntryType("CREDIT");
-        credit.setAmount(BigDecimal.valueOf(100));
+        credit.setAmount(event.getAmount());
         credit.setCreatedAt(LocalDateTime.now());
 
         ledgerRepo.save(debit);
         ledgerRepo.save(credit);
 
         System.out.println("Ledger entries created");
-
     }
+
+    @DltHandler
+    public void dlt(TransactionCreatedEvent event){
+        System.out.println("Message Sent To DLT: " + event.getTransactionId());
+    }
+
 }
