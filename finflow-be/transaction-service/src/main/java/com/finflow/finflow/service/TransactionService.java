@@ -1,6 +1,6 @@
 package com.finflow.finflow.service;
 
-import com.finflow.finflow.dto.TransactionCreatedEvent;
+import com.finflow.dto.TransactionCreatedEvent;
 import com.finflow.finflow.dto.TransactionRequest;
 import com.finflow.finflow.entity.Transaction;
 import com.finflow.finflow.entity.enums.TransactionStatus;
