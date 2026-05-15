@@ -1,4 +1,4 @@
-package com.finflow.finflow.dto;
+package com.finflow.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class TransactionCreatedEvent {
+
     private String transactionId;
     private String senderId;
     private String receiverId;
