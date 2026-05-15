@@ -5,4 +5,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface LedgerRepo extends JpaRepository<LedgerEntry, Long> {
+    boolean existsByTransactionIdAndEntryType(
+            String transactionId,
+            String entryType
+    );
 }
