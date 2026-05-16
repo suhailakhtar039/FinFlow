@@ -25,5 +25,6 @@ public class Wallet {
     private BigDecimal balance;
 
     @Version
-    private Long version;
+    @Builder.Default
+    private Long version = 0L;
 }
