@@ -1,6 +1,6 @@
 package com.finflow.finflow.entity;
 
-import com.finflow.finflow.entity.enums.TransactionStatus;
+import com.finflow.dto.TransactionStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

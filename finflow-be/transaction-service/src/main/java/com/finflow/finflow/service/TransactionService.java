@@ -6,7 +6,7 @@ import com.finflow.dto.TransactionCreatedEvent;
 import com.finflow.finflow.dto.TransactionRequest;
 import com.finflow.finflow.entity.OutboxEvent;
 import com.finflow.finflow.entity.Transaction;
-import com.finflow.finflow.entity.enums.TransactionStatus;
+import com.finflow.dto.TransactionStatus;
 import com.finflow.finflow.repository.OutboxRepo;
 import com.finflow.finflow.repository.TransactionRepo;
 import lombok.RequiredArgsConstructor;
