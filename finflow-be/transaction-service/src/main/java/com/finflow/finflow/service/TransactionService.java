@@ -1,9 +1,13 @@
 package com.finflow.finflow.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.finflow.dto.TransactionCreatedEvent;
 import com.finflow.finflow.dto.TransactionRequest;
+import com.finflow.finflow.entity.OutboxEvent;
 import com.finflow.finflow.entity.Transaction;
 import com.finflow.finflow.entity.enums.TransactionStatus;
+import com.finflow.finflow.repository.OutboxRepo;
 import com.finflow.finflow.repository.TransactionRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -20,11 +24,13 @@ public class TransactionService {
 
     private final KafkaTemplate<String, TransactionCreatedEvent> kafkaTemplate;
     private final TransactionRepo transactionRepo;
+    private final ObjectMapper objectMapper;
+    private final OutboxRepo outboxRepo;
 
     @Transactional
-    public Transaction createTransaction(TransactionRequest request, String key){
+    public Transaction createTransaction(TransactionRequest request, String key) throws JsonProcessingException {
         Optional<Transaction> existing = transactionRepo.findByIdempotencyKey(key);
-        if(existing.isPresent())
+        if (existing.isPresent())
             return existing.get();
 
         Transaction transaction = new Transaction();
@@ -52,8 +58,19 @@ public class TransactionService {
                         .createdAt(LocalDateTime.now())
                         .build();
 
-        kafkaTemplate.send("transaction-topic", event);
-        System.out.println("EVENT PUBLISHED: " + event);
+        String payload = objectMapper.writeValueAsString(event);
+
+        OutboxEvent outbox = OutboxEvent.builder()
+                .id(UUID.randomUUID().toString())
+                .aggregateId(transaction.getId())
+                .eventType("TransactionCreatedEvent")
+                .payload(payload)
+                .published(false)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        outboxRepo.save(outbox);
+
         return transaction;
 
     }
