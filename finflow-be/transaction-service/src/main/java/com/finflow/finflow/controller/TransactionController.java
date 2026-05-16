@@ -1,5 +1,6 @@
 package com.finflow.finflow.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.finflow.finflow.dto.TransactionRequest;
 import com.finflow.finflow.entity.Transaction;
 import com.finflow.finflow.service.TransactionService;
@@ -22,7 +23,7 @@ public class TransactionController {
     public ResponseEntity<Transaction> createTransaction(
             @RequestBody TransactionRequest request,
             @RequestHeader("Idempotency-Key") String key
-    ) {
+    ) throws JsonProcessingException {
         return ResponseEntity.ok(
                 transactionService.createTransaction(request, key)
         );
