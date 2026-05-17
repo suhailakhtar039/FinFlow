@@ -1,6 +1,7 @@
 package com.finflow.finflow;
 
 import com.finflow.dto.LedgerCreatedEvent;
+import com.finflow.dto.LedgerFailedEvent;
 import com.finflow.dto.TransactionCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -8,6 +9,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Service
@@ -28,69 +30,55 @@ public class LedgerKafkaConsumer {
             TransactionCreatedEvent transaction
     ) {
 
-        boolean exists =
-                ledgerRepo
-                        .existsByTransactionIdAndEntryType(
-                                transaction.getTransactionId(),
-                                "DEBIT"
-                        );
+        try {
 
-        if(exists) {
-            return;
+            // simulate failure
+            if(transaction.getAmount()
+                    .compareTo(BigDecimal.valueOf(5000)) > 0) {
+
+                throw new RuntimeException(
+                        "Ledger processing failed"
+                );
+            }
+
+            // existing ledger logic
+
+            LedgerCreatedEvent event =
+                    LedgerCreatedEvent.builder()
+                            .transactionId(
+                                    transaction.getTransactionId()
+                            )
+                            .createdAt(LocalDateTime.now())
+                            .build();
+
+            kafkaTemplate.send(
+                    "ledger-created-topic",
+                    event
+            );
+
+        } catch (Exception e) {
+
+            LedgerFailedEvent failedEvent =
+                    LedgerFailedEvent.builder()
+                            .transactionId(
+                                    transaction.getTransactionId()
+                            )
+                            .senderId(
+                                    transaction.getSenderId()
+                            )
+                            .amount(
+                                    transaction.getAmount()
+                            )
+                            .reason(e.getMessage())
+                            .createdAt(LocalDateTime.now())
+                            .build();
+
+            kafkaTemplate.send(
+                    "ledger-failed-topic",
+                    failedEvent
+            );
+
+            throw e;
         }
-
-        LedgerEntry debit = new LedgerEntry();
-
-        debit.setTransactionId(
-                transaction.getTransactionId()
-        );
-
-        debit.setAccountId(
-                transaction.getSenderId()
-        );
-
-        debit.setEntryType("DEBIT");
-
-        debit.setAmount(transaction.getAmount());
-
-        debit.setCreatedAt(LocalDateTime.now());
-
-        LedgerEntry credit = new LedgerEntry();
-
-        credit.setTransactionId(
-                transaction.getTransactionId()
-        );
-
-        credit.setAccountId(
-                transaction.getReceiverId()
-        );
-
-        credit.setEntryType("CREDIT");
-
-        credit.setAmount(transaction.getAmount());
-
-        credit.setCreatedAt(LocalDateTime.now());
-
-        ledgerRepo.save(debit);
-
-        ledgerRepo.save(credit);
-
-        // STEP 6 HERE
-        LedgerCreatedEvent event =
-                LedgerCreatedEvent.builder()
-                        .transactionId(
-                                transaction.getTransactionId()
-                        )
-                        .createdAt(LocalDateTime.now())
-                        .build();
-
-        kafkaTemplate.send(
-                "ledger-created-topic",
-                event
-        );
-
-        System.out.println(
-                "Ledger entries created"
-        );
     }
 }
