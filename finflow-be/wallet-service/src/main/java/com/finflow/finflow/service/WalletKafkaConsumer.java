@@ -2,7 +2,9 @@ package com.finflow.finflow.service;
 
 import com.finflow.dto.TransactionCreatedEvent;
 import com.finflow.dto.WalletDebitedEvent;
+import com.finflow.finflow.entity.ProcessedEvent;
 import com.finflow.finflow.entity.Wallet;
+import com.finflow.finflow.repository.ProcessedEventRepo;
 import com.finflow.finflow.repository.WalletRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -21,6 +23,8 @@ public class WalletKafkaConsumer {
     private final KafkaTemplate<String, Object>
             kafkaTemplate;
 
+    private final ProcessedEventRepo processedEventRepo;
+
     @KafkaListener(
             topics = "transaction-topic",
             groupId = "wallet-group"
@@ -30,12 +34,26 @@ public class WalletKafkaConsumer {
             TransactionCreatedEvent transaction
     ) {
 
+        boolean alreadyProcessed =
+                processedEventRepo.existsById(
+                        transaction.getTransactionId()
+                );
+
+        if(alreadyProcessed) {
+
+            System.out.println(
+                    "Wallet debit already processed"
+            );
+
+            return;
+        }
+
         Wallet sender =
                 walletRepo.findById(
                         transaction.getSenderId()
                 ).orElseThrow();
 
-        if (sender.getBalance().compareTo(
+        if(sender.getBalance().compareTo(
                 transaction.getAmount()) < 0) {
 
             throw new RuntimeException(
@@ -50,7 +68,12 @@ public class WalletKafkaConsumer {
 
         walletRepo.save(sender);
 
-        // STEP 3 HERE
+        processedEventRepo.save(
+                new ProcessedEvent(
+                        transaction.getTransactionId()
+                )
+        );
+
         WalletDebitedEvent event =
                 WalletDebitedEvent.builder()
                         .transactionId(
@@ -58,6 +81,9 @@ public class WalletKafkaConsumer {
                         )
                         .senderId(
                                 transaction.getSenderId()
+                        )
+                        .receiverId(
+                                transaction.getReceiverId()
                         )
                         .amount(
                                 transaction.getAmount()
