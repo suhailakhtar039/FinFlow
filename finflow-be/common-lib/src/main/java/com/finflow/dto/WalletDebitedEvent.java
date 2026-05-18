@@ -20,6 +20,8 @@ public class WalletDebitedEvent {
 
     private String senderId;
 
+    private String receiverId;
+
     private BigDecimal amount;
 
     private LocalDateTime createdAt;
