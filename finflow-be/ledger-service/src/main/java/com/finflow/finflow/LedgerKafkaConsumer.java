@@ -2,7 +2,7 @@ package com.finflow.finflow;
 
 import com.finflow.dto.LedgerCreatedEvent;
 import com.finflow.dto.LedgerFailedEvent;
-import com.finflow.dto.TransactionCreatedEvent;
+import com.finflow.dto.WalletDebitedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -21,18 +21,45 @@ public class LedgerKafkaConsumer {
     private final KafkaTemplate<String, Object>
             kafkaTemplate;
 
+    private final ProcessedLedgerEventRepo
+            processedLedgerEventRepo;
+
+    private final ProcessedLedgerFailureRepo
+            processedLedgerFailureRepo;
+
     @KafkaListener(
-            topics = "transaction-topic",
+            topics = "wallet-debited-topic",
             groupId = "ledger-group"
     )
     @Transactional
     public void consume(
-            TransactionCreatedEvent transaction
+            WalletDebitedEvent transaction
     ) {
+
+        // ==========================================
+        // IDEMPOTENCY CHECK
+        // ==========================================
+
+        boolean alreadyProcessed =
+                processedLedgerEventRepo.existsById(
+                        transaction.getTransactionId()
+                );
+
+        if(alreadyProcessed) {
+
+            System.out.println(
+                    "Ledger already processed"
+            );
+
+            return;
+        }
 
         try {
 
-            // simulate failure
+            // ==========================================
+            // FAILURE SIMULATION
+            // ==========================================
+
             if(transaction.getAmount()
                     .compareTo(BigDecimal.valueOf(5000)) > 0) {
 
@@ -41,14 +68,82 @@ public class LedgerKafkaConsumer {
                 );
             }
 
-            // existing ledger logic
+            // ==========================================
+            // DEBIT ENTRY
+            // ==========================================
+
+            LedgerEntry debit =
+                    new LedgerEntry();
+
+            debit.setTransactionId(
+                    transaction.getTransactionId()
+            );
+
+            debit.setAccountId(
+                    transaction.getSenderId()
+            );
+
+            debit.setEntryType("DEBIT");
+
+            debit.setAmount(
+                    transaction.getAmount()
+            );
+
+            debit.setCreatedAt(
+                    LocalDateTime.now()
+            );
+
+            // ==========================================
+            // CREDIT ENTRY
+            // ==========================================
+
+            LedgerEntry credit =
+                    new LedgerEntry();
+
+            credit.setTransactionId(
+                    transaction.getTransactionId()
+            );
+
+            credit.setAccountId(
+                    transaction.getReceiverId()
+            );
+
+            credit.setEntryType("CREDIT");
+
+            credit.setAmount(
+                    transaction.getAmount()
+            );
+
+            credit.setCreatedAt(
+                    LocalDateTime.now()
+            );
+
+            ledgerRepo.save(debit);
+
+            ledgerRepo.save(credit);
+
+            // ==========================================
+            // MARK EVENT PROCESSED
+            // ==========================================
+
+            processedLedgerEventRepo.save(
+                    new ProcessedLedgerEvent(
+                            transaction.getTransactionId()
+                    )
+            );
+
+            // ==========================================
+            // SUCCESS EVENT
+            // ==========================================
 
             LedgerCreatedEvent event =
                     LedgerCreatedEvent.builder()
                             .transactionId(
                                     transaction.getTransactionId()
                             )
-                            .createdAt(LocalDateTime.now())
+                            .createdAt(
+                                    LocalDateTime.now()
+                            )
                             .build();
 
             kafkaTemplate.send(
@@ -56,7 +151,44 @@ public class LedgerKafkaConsumer {
                     event
             );
 
+            System.out.println(
+                    "Ledger entries created"
+            );
+
         } catch (Exception e) {
+
+            // ==========================================
+            // FAILURE IDEMPOTENCY
+            // ==========================================
+
+            boolean failureAlreadyProcessed =
+                    processedLedgerFailureRepo
+                            .existsById(
+                                    transaction.getTransactionId()
+                            );
+
+            if(failureAlreadyProcessed) {
+
+                System.out.println(
+                        "Ledger failure already processed"
+                );
+
+                return;
+            }
+
+            // ==========================================
+            // MARK FAILURE PROCESSED
+            // ==========================================
+
+            processedLedgerFailureRepo.save(
+                    new ProcessedLedgerFailure(
+                            transaction.getTransactionId()
+                    )
+            );
+
+            // ==========================================
+            // FAILURE EVENT
+            // ==========================================
 
             LedgerFailedEvent failedEvent =
                     LedgerFailedEvent.builder()
@@ -69,8 +201,12 @@ public class LedgerKafkaConsumer {
                             .amount(
                                     transaction.getAmount()
                             )
-                            .reason(e.getMessage())
-                            .createdAt(LocalDateTime.now())
+                            .reason(
+                                    e.getMessage()
+                            )
+                            .createdAt(
+                                    LocalDateTime.now()
+                            )
                             .build();
 
             kafkaTemplate.send(
@@ -78,7 +214,12 @@ public class LedgerKafkaConsumer {
                     failedEvent
             );
 
-            throw e;
+            System.out.println(
+                    "Ledger failed event published"
+            );
+
+            // IMPORTANT:
+            // DO NOT THROW AGAIN
         }
     }
 }
