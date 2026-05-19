@@ -1,35 +1,43 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0">
 
-	<modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-	<!-- 👇 Use YOUR parent -->
-	<parent>
-		<groupId>com.finflow</groupId>
-		<artifactId>finflow</artifactId>
-		<version>1.0.0</version>
-	</parent>
+    <!-- 👇 Use YOUR parent -->
+    <parent>
+        <groupId>com.finflow</groupId>
+        <artifactId>finflow</artifactId>
+        <version>1.0.0</version>
+    </parent>
 
-	<artifactId>common-lib</artifactId>
-	<packaging>jar</packaging>
+    <artifactId>common-lib</artifactId>
+    <packaging>jar</packaging>
 
-	<name>common-lib</name>
-	<description>Shared DTOs and utilities for FinFlow</description>
+    <name>common-lib</name>
+    <description>Shared DTOs and utilities for FinFlow</description>
 
-	<dependencies>
+    <dependencies>
+        <!-- Web -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <!-- Lombok (optional, compile-time only) -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <!--  Kafka  -->
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+        </dependency>
+        <!-- Jackson annotations (for DTO serialization) -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+        </dependency>
 
-		<!-- Lombok (optional, compile-time only) -->
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<optional>true</optional>
-		</dependency>
-
-		<!-- Jackson annotations (for DTO serialization) -->
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-annotations</artifactId>
-		</dependency>
-
-	</dependencies>
+    </dependencies>
 
 </project>
