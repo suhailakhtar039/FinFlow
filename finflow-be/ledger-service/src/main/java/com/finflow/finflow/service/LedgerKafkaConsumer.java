@@ -1,8 +1,14 @@
-package com.finflow.finflow;
+package com.finflow.finflow.service;
 
 import com.finflow.dto.LedgerCreatedEvent;
 import com.finflow.dto.LedgerFailedEvent;
 import com.finflow.dto.WalletDebitedEvent;
+import com.finflow.finflow.repository.LedgerRepo;
+import com.finflow.finflow.repository.ProcessedLedgerEventRepo;
+import com.finflow.finflow.repository.ProcessedLedgerFailureRepo;
+import com.finflow.finflow.entity.LedgerEntry;
+import com.finflow.finflow.entity.ProcessedLedgerEvent;
+import com.finflow.finflow.entity.ProcessedLedgerFailure;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;

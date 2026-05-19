@@ -1,4 +1,4 @@
-package com.finflow.finflow;
+package com.finflow.finflow.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
