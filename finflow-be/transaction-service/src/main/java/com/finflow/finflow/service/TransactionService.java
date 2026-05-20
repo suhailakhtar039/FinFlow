@@ -7,6 +7,7 @@ import com.finflow.finflow.dto.TransactionRequest;
 import com.finflow.finflow.entity.OutboxEvent;
 import com.finflow.finflow.entity.Transaction;
 import com.finflow.dto.TransactionStatus;
+import com.finflow.finflow.metrics.TransactionMetrics;
 import com.finflow.finflow.repository.OutboxRepo;
 import com.finflow.finflow.repository.TransactionRepo;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ public class TransactionService {
     private final TransactionRepo transactionRepo;
     private final ObjectMapper objectMapper;
     private final OutboxRepo outboxRepo;
+    private final TransactionMetrics transactionMetrics;
 
     @Transactional
     public Transaction createTransaction(TransactionRequest request, String key) throws JsonProcessingException {
@@ -47,6 +49,8 @@ public class TransactionService {
         transaction.setCreatedAt(LocalDateTime.now());
 
         transactionRepo.save(transaction);
+
+        transactionMetrics.incrementInitiated();
 
         // PUBLISH EVENT
         TransactionCreatedEvent event =
