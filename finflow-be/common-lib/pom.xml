@@ -16,10 +16,9 @@
     <description>Shared DTOs and utilities for FinFlow</description>
 
     <dependencies>
-        <!-- Web -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
         </dependency>
         <!-- Lombok (optional, compile-time only) -->
         <dependency>
