@@ -4,8 +4,12 @@ import com.finflow.dto.LedgerFailedEvent;
 import com.finflow.dto.TransactionStatus;
 import com.finflow.dto.WalletRefundEvent;
 import com.finflow.finflow.entity.Transaction;
+import com.finflow.finflow.metrics.TransactionMetrics;
 import com.finflow.finflow.repository.TransactionRepo;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -15,10 +19,12 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class LedgerFailedConsumer {
 
     private final TransactionRepo transactionRepo;
     private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final TransactionMetrics transactionMetrics;
 
     @KafkaListener(topics = "ledger-failed-topic", groupId = "transaction-group")
     @Transactional
@@ -38,7 +44,10 @@ public class LedgerFailedConsumer {
                 .build();
 
         kafkaTemplate.send("wallet-refund-topic", refundEvent);
-
-        System.out.println("=========REFUND TRIGGERED========");
+        transactionMetrics.incrementFailure();
+        log.info(
+                "Refund triggered for transactionId={}",
+                event.getTransactionId()
+        );
     }
 }
