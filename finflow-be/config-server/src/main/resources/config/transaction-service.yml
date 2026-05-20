@@ -26,5 +26,24 @@ spring:
         spring.json.trusted.packages: "*"
         spring.json.value.default.type: com.finflow.dto.LedgerCreatedEvent
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+
+  health:
+    readinessstate:
+      enabled: true
+    livenessstate:
+      enabled: true
+
+
 server:
   port: 8081
